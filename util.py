@@ -14,14 +14,13 @@ def LoadData(filename, labeled=True, unlabeled=True):
   """
   if labeled:
 
-    data = loadmat('labeled_images.mat')
+    data = loadmat(filename)
     target_train = data['tr_labels']
     inputs_train = data['tr_images']
     x,y,z = inputs_train.shape
-    print x,y,z
     inputs_train = inputs_train.reshape(x*y,z)
 
-  return inputs_train
+  return inputs_train, target_train
 
 
 def ShowMeans(means, header=''):
@@ -36,7 +35,7 @@ def ShowMeans(means, header=''):
   raw_input('Press Enter.')
 
 if __name__ == '__main__':
-  ins = LoadData("", True, False)
+  ins = LoadData('labeled_images.mat', True, False)
   print ins.shape
 
   tins = ins.T
