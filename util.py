@@ -21,16 +21,17 @@ def LoadData(filename, labeled=True, unlabeled=True):
     x,y,z = inputs_train.shape
     inputs_train = inputs_train.reshape(x*y, z)
 
-    train_size = int(0.7 * z)
-    training_set = (inputs_train.T)[:train_size]
-    train_set_labels = target_train[:train_size]
-    validation_set = (inputs_train.T)[train_size:]
-    validation_set_labels = target_train[train_size:]
+    #train_size = int(0.7 * z)
+    #training_set = (inputs_train.T)[:train_size]
+    #train_set_labels = target_train[:train_size]
+    #validation_set = (inputs_train.T)[train_size:]
+    #validation_set_labels = target_train[train_size:]
 
     #plot_faces.plot_digits(training_set[:9])
     #plot_faces.plot_digits(validation_set[:9])
 
-  return training_set, train_set_labels, validation_set, validation_set_labels
+  return target_train, inputs_train.T
+  #return training_set, train_set_labels, validation_set, validation_set_labels
 
 
 def ShowMeans(means, header=''):
