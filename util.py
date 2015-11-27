@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import plot_faces
 from scipy.io import loadmat
+from random import shuffle
 
 def LoadData(filename, labeled=True, unlabeled=True):
 
@@ -35,11 +36,21 @@ def ShowMeans(means, header=''):
   raw_input('Press Enter.')
 
 if __name__ == '__main__':
-  ins = LoadData('labeled_images.mat', True, False)
-  print ins.shape
+  ins, ttars = LoadData('labeled_images.mat', True, False)
+  #print ins.shape
 
   tins = ins.T
-  tmp = tins[0:9]
+  #shuffle(tins)
+  train_size = int(0.7 * len(tins))
+  validation_size = len(tins) - train_size
+  trainig_set = tins[:train_size]
+  train_set_labels = ttars[:train_size]
+  validation_set = tins[train_size:]
+  validation_set_labels = ttars[train_size:]
+  tmp_trainig = trainig_set[0:9]
+  tmp_validation = validation_set[0:9]
   #tmp.T
-  plot_faces.plot_digits(tmp)
+  plot_faces.plot_digits(tmp_trainig)
+  plot_faces.plot_digits(tmp_validation)
+
 
