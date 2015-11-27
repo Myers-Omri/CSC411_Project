@@ -21,7 +21,14 @@ def LoadData(filename, labeled=True, unlabeled=True):
     x,y,z = inputs_train.shape
     inputs_train = inputs_train.reshape(x*y,z)
 
-  return inputs_train, target_train
+    train_size = int(0.7 * len(inputs_train))
+    validation_size = len(inputs_train) - train_size
+    training_set = inputs_train[:train_size]
+    train_set_labels = target_train[:train_size]
+    validation_set = inputs_train[train_size:]
+    validation_set_labels = target_train[train_size:]
+
+  return training_set, train_set_labels, validation_set, validation_set_labels
 
 
 def ShowMeans(means, header=''):
@@ -40,7 +47,7 @@ if __name__ == '__main__':
   #print ins.shape
 
   tins = ins.T
-  #shuffle(tins)
+
   train_size = int(0.7 * len(tins))
   validation_size = len(tins) - train_size
   trainig_set = tins[:train_size]
