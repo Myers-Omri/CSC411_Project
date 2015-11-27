@@ -27,8 +27,9 @@ def LoadData(filename, labeled=True, unlabeled=True):
     #validation_set = (inputs_train.T)[train_size:]
     #validation_set_labels = target_train[train_size:]
 
-    #plot_faces.plot_digits(training_set[:9])
-    #plot_faces.plot_digits(validation_set[:9])
+    #test = inputs_train.T
+    #plot_faces.plot_digits(test[:9])
+    #plot_faces.plot_digits(target_train[:9])
 
   return target_train, inputs_train.T
   #return training_set, train_set_labels, validation_set, validation_set_labels
