@@ -12,11 +12,9 @@ def count_id(input_id):
   for i,id in enumerate(new_list):
     if new_list.count(id) == 1:
       new_list[i] = -1
-  print(sorted(new_list))
+
   return np.array(new_list)
   
-
-
 def LoadData(filename, labeled=True, unlabeled=True):
 
   assert ((labeled or unlabeled) and not (labeled and unlabeled)), "Only one dataset must be loaded."
@@ -38,25 +36,11 @@ def LoadData(filename, labeled=True, unlabeled=True):
     x,y,z = inputs_train.shape
     inputs_trainn = (inputs_train.reshape(x*y, z)).T
 
-    training_set, train_set_labels, validation_set, validation_set_labels = cross_validation.train_test_split(
+    training_set, validation_set, train_set_labels, validation_set_labels = cross_validation.train_test_split(
        inputs_trainn, target_train, test_size = 0.3, random_state=1, stratify=corrected_list)
 
-    #temp_zip = zip( inputs_train.T , target_train)
-    #data_zipped = zip(temp_zip, input_id)
-    #tmp_sorted = sorted(data_zipped, key=lambda x: x[1])
-    #data_list_tup = [a for (a,b) in tmp_sorted ]
-    #input_train_list = [a for (a,b) in data_list_tup]
-    #label_train_list = [b for (a,b) in data_list_tup]
-
-
-    #train_size = int(0.7 * z)
-    #training_set = np.matrix((input_train_list)[:train_size])
-    #train_set_labels = np.matrix(label_train_list[:train_size])
-    #validation_set = np.matrix((input_train_list)[train_size:])
-    #validation_set_labels = np.matrix(label_train_list[train_size:])
-
     #test = inputs_train.T
-    plot_faces.plot_digits(training_set[:9])
+    #plot_faces.plot_digits(training_set[:9])
     #plot_faces.plot_digits(validation_set[:9])
 
   # return target_train, inputs_train.T
