@@ -4,6 +4,9 @@ import plot_faces
 from scipy.io import loadmat
 from random import shuffle
 
+# def split_by_id()
+
+
 def LoadData(filename, labeled=True, unlabeled=True):
 
   assert ((labeled or unlabeled) and not (labeled and unlabeled)), "Only one dataset must be loaded."
@@ -18,8 +21,13 @@ def LoadData(filename, labeled=True, unlabeled=True):
     data = loadmat(filename)
     target_train = data['tr_labels']
     inputs_train = data['tr_images']
+    input_id = data['tr_identity']
+
     x,y,z = inputs_train.shape
     inputs_train = inputs_train.reshape(x*y, z)
+
+    temp_zip = zip(input_id, target_train)
+    data_zipped = zip(temp_zip, inputs_train.T)
 
     #train_size = int(0.7 * z)
     #training_set = (inputs_train.T)[:train_size]
@@ -45,6 +53,8 @@ def ShowMeans(means, header=''):
   plt.title(header)
   plt.draw()
   raw_input('Press Enter.')
+
+
 
 if __name__ == '__main__':
   LoadData('labeled_images.mat', True, False)
