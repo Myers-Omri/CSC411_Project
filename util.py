@@ -30,7 +30,6 @@ def LoadData(filename, labeled=True, unlabeled=True):
     target_train = data['tr_labels']
     inputs_train = data['tr_images']
     input_id = data['tr_identity']
-    #sorted_id = sorted(data_zipped, key=lambda x: x[1])
     corrected_list = count_id(input_id)
 
     x,y,z = inputs_train.shape
@@ -43,7 +42,6 @@ def LoadData(filename, labeled=True, unlabeled=True):
     #plot_faces.plot_digits(training_set[:9])
     #plot_faces.plot_digits(validation_set[:9])
 
-  # return target_train, inputs_train.T
     return training_set, train_set_labels, validation_set, validation_set_labels
 
 
