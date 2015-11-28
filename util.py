@@ -3,9 +3,10 @@ import matplotlib.pyplot as plt
 import plot_faces
 from scipy.io import loadmat
 from random import shuffle
+from sklearn import cross_validation
 
-# def split_by_id(tuple_list):
-#
+def count_id(input_id):
+  
 
 
 def LoadData(filename, labeled=True, unlabeled=True):
@@ -27,23 +28,26 @@ def LoadData(filename, labeled=True, unlabeled=True):
     x,y,z = inputs_train.shape
     inputs_train = inputs_train.reshape(x*y, z)
 
-    temp_zip = zip( inputs_train.T , target_train)
-    data_zipped = zip(temp_zip, input_id)
-    tmp_sorted = sorted(data_zipped, key=lambda x: x[1])
-    data_list_tup = [a for (a,b) in tmp_sorted ]
-    input_train_list = [a for (a,b) in data_list_tup]
-    label_train_list = [b for (a,b) in data_list_tup]
+    training_set, train_set_labels, validation_set, validation_set_labels = cross_validation.train_test_split(
+      inputs_train, target_train, test_size = 0.3, random_state=0, stratify=input_id)    
+
+    #temp_zip = zip( inputs_train.T , target_train)
+    #data_zipped = zip(temp_zip, input_id)
+    #tmp_sorted = sorted(data_zipped, key=lambda x: x[1])
+    #data_list_tup = [a for (a,b) in tmp_sorted ]
+    #input_train_list = [a for (a,b) in data_list_tup]
+    #label_train_list = [b for (a,b) in data_list_tup]
 
 
-    train_size = int(0.7 * z)
-    training_set = np.matrix((input_train_list)[:train_size])
-    train_set_labels = np.matrix(label_train_list[:train_size])
-    validation_set = np.matrix((input_train_list)[train_size:])
-    validation_set_labels = np.matrix(label_train_list[train_size:])
+    #train_size = int(0.7 * z)
+    #training_set = np.matrix((input_train_list)[:train_size])
+    #train_set_labels = np.matrix(label_train_list[:train_size])
+    #validation_set = np.matrix((input_train_list)[train_size:])
+    #validation_set_labels = np.matrix(label_train_list[train_size:])
 
     #test = inputs_train.T
-    plot_faces.plot_digits(training_set[:9])
-    plot_faces.plot_digits(validation_set[:9])
+    #plot_faces.plot_digits(training_set[:9])
+    #plot_faces.plot_digits(validation_set[:9])
 
   # return target_train, inputs_train.T
     return training_set, train_set_labels, validation_set, validation_set_labels
