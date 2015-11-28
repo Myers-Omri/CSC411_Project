@@ -7,12 +7,13 @@ from sklearn import cross_validation
 
 def count_id(input_id):
   list_id = input_id.tolist()
+  new_list = [x[0] for x in list_id]
 
-  for id in list_id:
-    if list_id.count(id) == 1:
-      id = -1
-
-  return np.matrix(list_id)
+  for i,id in enumerate(new_list):
+    if new_list.count(id) == 1:
+      new_list[i] = -1
+  print(sorted(new_list))
+  return np.array(new_list)
   
 
 
@@ -35,10 +36,10 @@ def LoadData(filename, labeled=True, unlabeled=True):
     corrected_list = count_id(input_id)
 
     x,y,z = inputs_train.shape
-    inputs_train = inputs_train.reshape(x*y, z)
+    inputs_trainn = (inputs_train.reshape(x*y, z)).T
 
     training_set, train_set_labels, validation_set, validation_set_labels = cross_validation.train_test_split(
-      inputs_train, target_train, test_size = 0.3, random_state=0, stratify=corrected_list)
+       inputs_trainn, target_train, test_size = 0.3, random_state=1, stratify=corrected_list)
 
     #temp_zip = zip( inputs_train.T , target_train)
     #data_zipped = zip(temp_zip, input_id)
@@ -55,7 +56,7 @@ def LoadData(filename, labeled=True, unlabeled=True):
     #validation_set_labels = np.matrix(label_train_list[train_size:])
 
     #test = inputs_train.T
-    #plot_faces.plot_digits(training_set[:9])
+    plot_faces.plot_digits(training_set[:9])
     #plot_faces.plot_digits(validation_set[:9])
 
   # return target_train, inputs_train.T
