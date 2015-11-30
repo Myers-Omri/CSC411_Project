@@ -6,6 +6,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn import cross_validation
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.mixture import GMM
+from sklearn.ensemble import AdaBoostClassifier
 import numpy as np
 
 
@@ -88,6 +89,23 @@ def MoG(training_inputs, training_labels, valid_inputs, valid_label):
 
         #print test_accuracy
 
+def adaBoost(training_inputs, training_labels, valid_inputs, valid_label):
+    standard_train_inputs = standard_data(training_inputs)
+    standard_valid_inputs = standard_data(valid_inputs)    
+    
+    clf = AdaBoostClassifier(base_estimator=sklearn.linear_model.LogisticRegression(penalty='l2', dual=False, tol=0.01, C=1.0, fit_intercept=True,
+                                                                         intercept_scaling=1, class_weight=None, random_state=None, solver='newton-cg',
+                                                                         max_iter=100, multi_class='ovr', verbose=0, warm_start=False, n_jobs=2),
+                            n_estimators=200)
+
+    clf.fit(standard_train_inputs, training_labels.ravel())
+
+    accuracy = clf.score(standard_train_inputs, training_labels.ravel())
+    print accuracy
+
+    valid_accuracy = clf.score(standard_valid_inputs, valid_label.ravel())
+    print valid_accuracy
+
 def get_prior_dist():
     stats = [0,0,0,0,0,0,0]
     for i,l in enumerate(training_labels):
@@ -101,7 +119,7 @@ if __name__ == '__main__':
     #training_inputs, valid_inputs, training_labels, valid_label = cross_validation.train_test_split(train_inputs, train_targets, test_size=0.3, rlogistic_regression(training_set, train_set_labels, validation_set, validation_set_labels)
     #knn(training_set, train_set_labels, validation_set, validation_set_labels)
     #logistic_regression(training_set, train_set_labels, validation_set, validation_set_labels)
-    MoG(training_set, train_set_labels, validation_set, validation_set_labels)
-
+    #MoG(training_set, train_set_labels, validation_set, validation_set_labels)
+    adaBoost(training_set, train_set_labels, validation_set, validation_set_labels)
 
 
