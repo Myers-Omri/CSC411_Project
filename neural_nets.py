@@ -38,8 +38,8 @@ def net_class(ustraining_set, train_set_labels, usvalidation_set, validation_set
     best_l = 0.0
     best_w = 0.0
     obest_e = 0
-    for l in [0.001, 0.002, 0.004, 0.005 ]:
-        for w in [0.05, 0.06, 0.7, 0.8, 0.9]:
+    for l in [ 0.004, 0.005 ]:
+        for w in [0.05, 0.06, 0.1]:
             net = buildNetwork(1024, 100, 8,outclass=SoftmaxLayer)
             trainer = BackpropTrainer(net, ds, learningrate=l, momentum=0, weightdecay=w, batchlearning=False,verbose=True)
             cmin_err = 100.0
@@ -103,11 +103,12 @@ def load_net_and_check_errorate(X,Y):
 
     print " Classification rate for the trained Neural net is: %5.2f%%" % (100 - ttstresult)
     res_f.close()
+    return ttrainer.testOnClassData()
 
 if __name__ == '__main__':
 
-    training_set, train_set_labels, validation_set, validation_set_labels = LoadData('labeled_images.mat', True, False)
+    training_set, train_set_labels, validation_set, validation_set_labels = LoadData('labeled_images.mat', True, True)
 
-    net_class(training_set, train_set_labels, validation_set, validation_set_labels)
+    #net_class(training_set, train_set_labels, validation_set, validation_set_labels)
 
-    #load_net_and_check_errorate(validation_set, validation_set_labels)
+    load_net_and_check_errorate(validation_set, validation_set_labels)
