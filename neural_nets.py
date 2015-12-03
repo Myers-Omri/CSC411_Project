@@ -87,7 +87,7 @@ def net_class(ustraining_set, train_set_labels, usvalidation_set, validation_set
 
 def load_net_and_check_errorate(X,Y):
 
-    res_f = open('testNetwork.dump', 'r')
+    res_f = open('bestNet.dump', 'r')
     nnet = pickle.load(res_f)
     nnet.sorted = False
     nnet.sortModules()
