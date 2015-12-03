@@ -221,6 +221,7 @@ def run_my_votin(training_set, train_set_labels, validation_set, validation_set_
                                                                          intercept_scaling=1, class_weight=None, random_state=None, solver='newton-cg',
                                                                          max_iter=200, multi_class='ovr', verbose=0, warm_start=False, n_jobs=2)
     svm_class = svm.SVC(kernel='rbf', C=50, shrinking = False,decision_function_shape='ovr', tol=0.001, max_iter=-1)
+    print "Knn done"
 
     # bg1 = run_bagging(standard_train_inputs, train_set_labels, standard_valid_inputs, validation_set_labels, kknn_class)
     # res_f = open('bg1knn.dump', 'w')
@@ -239,16 +240,17 @@ def run_my_votin(training_set, train_set_labels, validation_set, validation_set_
     res_2 = open('bg2lr.dump', 'r')
     bg2 = pickle.load(res_2)
     res_2.close()
+    print "LR done"
     # res_3 = open('bg3svm.dump', 'r')
     # bg3 = pickle.load(res_3)
     # res_3.close()
     # fixed_valid = fix_pixels(validation_set)
 
     net_predictions = load_net_and_check_errorate(validation_set,validation_set_labels)
-    print "done nets"
+    print "nets done"
     # eclf1 = VotingClassifier(estimators=[('knn', kknn_class), ('lr', bg2), ('svm', bg3)], voting='soft')
     # eclf1.fit(standard_train_inputs,train_set_labels.ravel())
-    print "done fit votings"
+    # print "done fit votings"
     # voting_probs = eclf1.predict_proba(standard_valid_inputs)
     preds_arr = []
     pred_weights = [0.10, 0.4,0.4]
@@ -274,8 +276,9 @@ def run_my_votin(training_set, train_set_labels, validation_set, validation_set_
 
     # print(fin_labels)
     fin_acc, err = get_acc(fin_labels, validation_set_labels)
-    print fin_acc
-    print [x for x,y in err if x==7]
+    print 'The final accuracy after bagging and votig is :', fin_acc
+    # print "and thats all the errors"
+    # print [(x,y) for x,y in err if x==7]
 
     # prob_predictions = []
     # for bgc in [bg1, bg2, bg3]:
