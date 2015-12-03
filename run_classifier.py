@@ -20,7 +20,7 @@ def fix_pixels(inputs):
     from skimage import exposure
     new_data = []
     for i in inputs:
-        new_i = img_eq = exposure.equalize_hist(i)
+        new_i = exposure.equalize_hist(i)
         new_data.append(new_i)
     return new_data
 
@@ -194,10 +194,10 @@ def run_bagging(training_set, train_set_labels, validation_set, validation_set_l
     bgc = BaggingClassifier(base_estimator=clsf, n_estimators=11, max_samples=1.0, max_features=1.0, bootstrap=True,
                             bootstrap_features=False, oob_score=False, warm_start=False, n_jobs=1, random_state=None,
                             verbose=0)
-    standard_train_inputs = standard_data(training_set)
-    standard_valid_inputs = standard_data(validation_set)
-    fbgc = bgc.fit(standard_train_inputs,train_set_labels.ravel())
-    acc = fbgc.score(standard_valid_inputs,validation_set_labels.ravel())
+    # standard_train_inputs = standard_data(training_set)
+    # standard_valid_inputs = standard_data(validation_set)
+    fbgc = bgc.fit(training_set,train_set_labels.ravel())
+    acc = fbgc.score(validation_set,validation_set_labels.ravel())
     print(acc)
     return fbgc
 def get_acc(pred, labels):
@@ -213,33 +213,36 @@ def run_my_votin(training_set, train_set_labels, validation_set, validation_set_
     from neural_nets import load_net_and_check_errorate
     standard_train_inputs = standard_data(training_set)
     standard_valid_inputs = standard_data(validation_set)
+    fixed_train_set = fix_pixels(training_set)
+    fixed_valid = fix_pixels(validation_set)
     kknn_class = KNeighborsClassifier(weights='distance', n_neighbors=5)
     kknn_class.fit(standard_train_inputs, train_set_labels.ravel())
     logistic_regression_solver = sklearn.linear_model.LogisticRegression(penalty='l2', dual=False, tol=0.001, C=1.2, fit_intercept=True,
                                                                          intercept_scaling=1, class_weight=None, random_state=None, solver='newton-cg',
                                                                          max_iter=200, multi_class='ovr', verbose=0, warm_start=False, n_jobs=2)
-    svm_class = svm.SVC(decision_function_shape='ovr', tol=0.001, C=1.2)
+    svm_class = svm.SVC(kernel='rbf', C=50, shrinking = False,decision_function_shape='ovr', tol=0.001, max_iter=-1)
 
-    # bg1 = run_bagging(training_set, train_set_labels, validation_set, validation_set_labels, kknn_class)
+    # bg1 = run_bagging(standard_train_inputs, train_set_labels, standard_valid_inputs, validation_set_labels, kknn_class)
     # res_f = open('bg1knn.dump', 'w')
     # pickle.dump(bg1,res_f )
     # res_f.close()
-    # bg2 = run_bagging(training_set, train_set_labels, validation_set, validation_set_labels, logistic_regression_solver)
+    # bg2 = run_bagging(standard_train_inputs, train_set_labels, standard_valid_inputs, validation_set_labels, logistic_regression_solver)
     # res_f = open('bg2lr.dump', 'w')
     # pickle.dump(bg2,res_f )
     # res_f.close()
     # print "done bg LR"
-    # bg3 = run_bagging(training_set, train_set_labels, validation_set, validation_set_labels, svm_class)
-    # res_f = open('bg3svm.dump', 'w')
-    # pickle.dump(bg3,res_f )
-    # res_f.close()
-    # print "done bg svm"
+    bg3 = run_bagging(fixed_train_set, train_set_labels, fixed_valid, validation_set_labels, svm_class)
+    res_f = open('bg3svm.dump', 'w')
+    pickle.dump(bg3,res_f )
+    res_f.close()
+    print "done bg svm"
     res_2 = open('bg2lr.dump', 'r')
     bg2 = pickle.load(res_2)
     res_2.close()
-    res_3 = open('bg3svm.dump', 'r')
-    bg3 = pickle.load(res_3)
-    res_3.close()
+    # res_3 = open('bg3svm.dump', 'r')
+    # bg3 = pickle.load(res_3)
+    # res_3.close()
+    # fixed_valid = fix_pixels(validation_set)
 
     net_predictions = load_net_and_check_errorate(validation_set,validation_set_labels)
     print "done nets"
@@ -248,14 +251,14 @@ def run_my_votin(training_set, train_set_labels, validation_set, validation_set_
     print "done fit votings"
     # voting_probs = eclf1.predict_proba(standard_valid_inputs)
     preds_arr = []
-    pred_weights = [0.10, 0.4,0.35]
-    for clf in [kknn_class, bg2, bg3]:
+    pred_weights = [0.10, 0.4,0.4]
+    for clf in [kknn_class, bg2]:
         preds_arr.append(clf.predict_proba(standard_valid_inputs))
-
+    preds_arr.append(bg3.predict_proba(fixed_valid))
     fin_pred = []
     for i,p in enumerate(net_predictions):
         tmp_np = np.zeros(7)
-        tmp_np[p-1] = 0.15
+        tmp_np[p-1] = 0.10
 
         for w ,pp in zip(pred_weights, preds_arr):
             tmp_np += pp[i] * w
@@ -272,7 +275,7 @@ def run_my_votin(training_set, train_set_labels, validation_set, validation_set_
     # print(fin_labels)
     fin_acc, err = get_acc(fin_labels, validation_set_labels)
     print fin_acc
-    print err
+    print [x for x,y in err if x==7]
 
     # prob_predictions = []
     # for bgc in [bg1, bg2, bg3]:
@@ -296,9 +299,9 @@ if __name__ == '__main__':
     #logistic_regression(training_set, train_set_labels, validation_set, validation_set_labels)
     # MoG(training_set, train_set_labels, validation_set, validation_set_labels)
     #adaBoost(training_set, train_set_labels, validation_set, validation_set_labels)
-    inp, labels, ids = LoadData('labeled_images.mat', True, False)
-    run_svm(inp, labels, ids)
+    # inp, labels, ids = LoadData('labeled_images.mat', True, False)
+    # run_svm(inp, labels, ids)
     #run_bagging(training_set, train_set_labels, validation_set, validation_set_labels, clsf)
     #run_voting(training_set, train_set_labels, validation_set, validation_set_labels)
-    #run_my_votin(training_set, train_set_labels, validation_set, validation_set_labels)
+    run_my_votin(training_set, train_set_labels, validation_set, validation_set_labels)
 
