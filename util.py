@@ -26,9 +26,10 @@ def LoadData(filename, labeled=True, splited=False):
     @ data['tr_images']: the images given by pixel matrices (32 pixels by 32 pixels by 2925 images)
                           a 3D array of shape [32][32][2925]
     """
+    data = loadmat(filename)
     if labeled:
 
-        data = loadmat(filename)
+
         target_train = data['tr_labels']
         inputs_train = data['tr_images']
         input_id = data['tr_identity']
@@ -47,7 +48,13 @@ def LoadData(filename, labeled=True, splited=False):
         #plot_faces.plot_digits(validation_set[:9])
 
             return training_set, train_set_labels, validation_set, validation_set_labels
+    else:
+        inputs_train = data['public_test_images']
 
+        x,y,z = inputs_train.shape
+        inputs_trainn = (inputs_train.reshape(x*y, z)).T
+        if not splited:
+            return inputs_trainn
 
 
 def ShowMeans(means, header=''):
@@ -61,7 +68,19 @@ def ShowMeans(means, header=''):
     plt.draw()
     raw_input('Press Enter.')
 
+def standard_data(inputs):
+    mean = np.mean(inputs, axis=0)
+    std = np.std(inputs, axis=0)
+    return (inputs - mean) / std
 
+def fix_pixels(inputs):
+    from skimage import data, img_as_float
+    from skimage import exposure
+    new_data = []
+    for i in inputs:
+        new_i = exposure.equalize_hist(i)
+        new_data.append(new_i)
+    return new_data
 
 if __name__ == '__main__':
     LoadData('labeled_images.mat', True, False)
