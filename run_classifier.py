@@ -153,7 +153,7 @@ def  run_svm(all_data_in, all_data_labels, ids):
 
 
 
-def get_prior_dist():
+def get_prior_dist(training_labels):
     stats = [0,0,0,0,0,0,0]
     for i,l in enumerate(training_labels):
         stats[l-1] += 1
@@ -345,6 +345,7 @@ if __name__ == '__main__':
     #run_voting(training_set, train_set_labels, validation_set, validation_set_labels)
 
     # create_csv(range(11,21))
+
     training_set, train_set_labels, idst = LoadData('labeled_images.mat', True, False)
     validation_set= LoadData('public_test_images.mat', False, False)
     run_my_votin(training_set, train_set_labels,validation_set, None, False)

@@ -11,7 +11,7 @@ import cPickle as pickle
 from pybrain.tools.shortcuts import buildNetwork
 from pybrain.tools.neuralnets import NNclassifier
 
-from pybrain.structure import TanhLayer
+from pybrain.structure import TanhLayer, SigmoidLayer
 from pybrain.structure import SoftmaxLayer
 from pybrain.datasets import SupervisedDataSet
 from pybrain.supervised.trainers import BackpropTrainer
@@ -41,7 +41,8 @@ def net_class(ustraining_set, train_set_labels, usvalidation_set=None, validatio
     obest_e = 0
     for l in [ 0.005 ]:
         for w in [0.05]:
-            net = buildNetwork(1024, 110, 8, outclass=SoftmaxLayer)
+            net = buildNetwork(1024, 150, 8, outclass=SoftmaxLayer, hiddenclass=SigmoidLayer)
+            net.sortModules()
             trainer = BackpropTrainer(net, ds, learningrate=l, momentum=0, weightdecay=w, batchlearning=False,verbose=True)
             cmin_err = 100.0
             flag = True
@@ -51,7 +52,7 @@ def net_class(ustraining_set, train_set_labels, usvalidation_set=None, validatio
                 flag = False
                 trnresult = 100.0
                 tstresult = 100.0
-                for i in range(4):
+                for i in range(10):
                     e += 1
                     trainer.trainEpochs(1)
 
@@ -81,7 +82,7 @@ def net_class(ustraining_set, train_set_labels, usvalidation_set=None, validatio
                     print "new opt err:{}, for LR: {}, WD:{}, NE:{} ".format(tot_min_err, best_l, best_w, obest_e)
             net.sorted = False
             net.sortModules()
-            res_f = open('bestNet.dump', 'w')
+            res_f = open('bestNetss.dump', 'w')
             pickle.dump(net,res_f )
             res_f.close()
     return trainer
@@ -111,6 +112,6 @@ if __name__ == '__main__':
     ttraining_set,ttrain_set_labels, validation_set, validation_set_labels = LoadData('labeled_images.mat', True, True)
     training_set, train_set_labels, ids = LoadData('labeled_images.mat', True, False)
     # net_class(training_set, train_set_labels, validation_set, validation_set_labels)
-    net_class(training_set, train_set_labels)
+    net_class(ttraining_set,ttrain_set_labels, validation_set, validation_set_labels)
 
-    load_net_and_check_errorate(validation_set, validation_set_labels)
+    # load_net_and_check_errorate(validation_set, validation_set_labels)

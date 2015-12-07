@@ -4,7 +4,7 @@ import plot_faces
 from scipy.io import loadmat
 from random import shuffle
 from sklearn import cross_validation
-
+from plot_faces import plot_digits
 def count_id(input_id):
     list_id = input_id.tolist()
     new_list = [x[0] for x in list_id]
@@ -82,8 +82,25 @@ def fix_pixels(inputs):
         new_data.append(new_i)
     return new_data
 
+def gabor_filter(inputs):
+    from skimage.filters import gabor_kernel
+    from scipy import ndimage as ndi
+    new_data = []
+    kernel = np.real(gabor_kernel(frequency=0.25, theta=0, sigma_x=1,sigma_y=1))
+    for i in inputs:
+        i.reshape(32,32)
+        filtered = ndi.convolve(i, kernel, mode='wrap')
+        new_data.append(filtered)
+    return new_data
+
 if __name__ == '__main__':
-    LoadData('labeled_images.mat', True, False)
-
-
-
+    images, labels, ids  = LoadData('labeled_images.mat', True, False)
+    filtered_images = fix_pixels(images[:20])
+    print "originals"
+    # plot_digits(images[:9])
+    print "new"
+    fi = np.matrix(filtered_images[:9])
+    # plot_digits(fi)
+    print "diff"
+    diff_arr = np.concatenate((images[:5], fi[:5]), axis=0 )
+    plot_digits(diff_arr)
