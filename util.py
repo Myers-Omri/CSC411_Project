@@ -5,6 +5,17 @@ from scipy.io import loadmat
 from random import shuffle
 from sklearn import cross_validation
 from plot_faces import plot_digits
+from skimage.filters import gabor_kernel
+from scipy import ndimage as ndi
+
+import matplotlib.cm as cm
+import operator as o
+from matplotlib.font_manager import FontProperties
+
+
+
+
+
 def count_id(input_id):
     list_id = input_id.tolist()
     new_list = [x[0] for x in list_id]
@@ -83,24 +94,171 @@ def fix_pixels(inputs):
     return new_data
 
 def gabor_filter(inputs):
-    from skimage.filters import gabor_kernel
-    from scipy import ndimage as ndi
+
     new_data = []
     kernel = np.real(gabor_kernel(frequency=0.25, theta=0, sigma_x=1,sigma_y=1))
-    for i in inputs:
-        i.reshape(32,32)
-        filtered = ndi.convolve(i, kernel, mode='wrap')
-        new_data.append(filtered)
-    return new_data
+    # for i in inputs:
+    #     i.reshape(32,32)
+    filtered = ndi.convolve(inputs, kernel, mode='wrap')
+    # new_data.append(filtered)
+    return filtered
+
+
+
+def barplot_bagging(ax, info):
+    p = ("K-NN", "Logistic Regression", "SVM")
+    dpoints = np.array(    [['Normal Classifier', 'K-NN', info[0]],
+                           ['Normal Classifier', 'Logistic Regression', info[1]],
+                           ['Normal Classifier', 'SVM', info[2]],
+
+                           ['Using Bagging', 'K-NN', info[3]],
+                           ['Using Bagging', 'Logistic Regression', info[4]],
+                           ['Using Bagging', 'SVM', info[5]]])
+    '''
+    Create a barchart for data across different categories with
+    multiple conditions for each category.
+
+    @param ax: The plotting axes from matplotlib.
+    @param dpoints: The data set as an (n, 3) numpy array
+    '''
+
+    # Aggregate the conditions and the categories according to their
+    # mean values
+    conditions = [(c, np.mean(dpoints[dpoints[:,0] == c][:,2].astype(float)))
+                  for c in np.unique(dpoints[:,0])]
+    categories = [(c, np.mean(dpoints[dpoints[:,1] == c][:,2].astype(float)))
+                  for c in np.unique(dpoints[:,1])]
+
+    # sort the conditions, categories and data so that the bars in
+    # the plot will be ordered by category and condition
+    conditions = [c[0] for c in sorted(conditions, key=o.itemgetter(1))]
+    categories = [c[0] for c in sorted(categories, key=o.itemgetter(1))]
+
+    dpoints = np.array(sorted(dpoints, key=lambda x: categories.index(x[1])))
+
+    # the space between each set of bars
+    space = 0.3
+    n = len(conditions)
+    width = (1 - space) / (len(conditions))
+
+    # Create a set of bars at each position
+    for i,cond in enumerate(conditions):
+        indeces = range(1, len(categories)+1)
+        vals = dpoints[dpoints[:,0] == cond][:,2].astype(np.float)
+        pos = [j - (1 - space) / 2. + i * width for j in indeces]
+        ax.bar(pos, vals, width=width, label=cond,
+               color=cm.Accent(float(i) / n))
+
+    # Set the x-axis tick labels to be equal to the categories
+    ax.set_xticks(indeces)
+    ax.set_xticklabels(p)
+    #plt.setp(plt.xticks()[1], rotation=90)
+
+    # Add the axis labels
+    ax.set_ylabel("Accuracy")
+    #ax.set_ylabel("Time")
+    ax.set_xlabel("Classifier")
+    fontP = FontProperties()
+    fontP.set_size('small')
+    # Add a legend
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles[::-1], labels[::-1], loc='upper left', prop = fontP)
+
+    plt.show()
+
+def barplot_preprocess(ax, info):
+    p = ("K-NN", "Logistic Regression", "SVM")
+    dpoints = np.array(    [['No-Preprocess', 'K-NN', info[0]],
+                           ['No-Preprocess', 'Logistic Regression', info[1]],
+                           ['No-Preprocess', 'SVM', info[2]],
+
+                           ['Standardize', 'K-NN', info[3]],
+                           ['Standardize', 'Logistic Regression', info[4]],
+                           ['Standardize', 'SVM', info[5]],
+
+                           ['Histogram Equalization', 'K-NN', info[6]],
+                           ['Histogram Equalization', 'Logistic Regression', info[7]],
+                           ['Histogram Equalization', 'SVM', info[8]],
+
+                           ['Standardize', 'K-NN', info[9]],
+                           ['Standardize', 'Logistic Regression', info[10]],
+                           ['Standardize', 'SVM', info[11]],
+                            ])
+    '''
+    Create a barchart for data across different categories with
+    multiple conditions for each category.
+
+    @param ax: The plotting axes from matplotlib.
+    @param dpoints: The data set as an (n, 3) numpy array
+    '''
+
+    # Aggregate the conditions and the categories according to their
+    # mean values
+    conditions = [(c, np.mean(dpoints[dpoints[:,0] == c][:,2].astype(float)))
+                  for c in np.unique(dpoints[:,0])]
+    categories = [(c, np.mean(dpoints[dpoints[:,1] == c][:,2].astype(float)))
+                  for c in np.unique(dpoints[:,1])]
+
+    # sort the conditions, categories and data so that the bars in
+    # the plot will be ordered by category and condition
+    conditions = [c[0] for c in sorted(conditions, key=o.itemgetter(1))]
+    categories = [c[0] for c in sorted(categories, key=o.itemgetter(1))]
+
+    dpoints = np.array(sorted(dpoints, key=lambda x: categories.index(x[1])))
+
+    # the space between each set of bars
+    space = 0.3
+    n = len(conditions)
+    width = (1 - space) / (len(conditions))
+
+    # Create a set of bars at each position
+    for i,cond in enumerate(conditions):
+        indeces = range(1, len(categories)+1)
+        vals = dpoints[dpoints[:,0] == cond][:,2].astype(np.float)
+        pos = [j - (1 - space) / 2. + i * width for j in indeces]
+        ax.bar(pos, vals, width=width, label=cond,
+               color=cm.Accent(float(i) / n))
+
+    # Set the x-axis tick labels to be equal to the categories
+    ax.set_xticks(indeces)
+    ax.set_xticklabels(p)
+    #plt.setp(plt.xticks()[1], rotation=90)
+
+    # Add the axis labels
+    ax.set_ylabel("Accuracy")
+    #ax.set_ylabel("Time")
+    ax.set_xlabel("Classifier")
+    fontP = FontProperties()
+    fontP.set_size('small')
+    # Add a legend
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles[::-1], labels[::-1], loc='upper left', prop = fontP)
+
+    plt.show()
 
 if __name__ == '__main__':
-    images, labels, ids  = LoadData('labeled_images.mat', True, False)
-    filtered_images = fix_pixels(images[:20])
-    print "originals"
-    # plot_digits(images[:9])
-    print "new"
-    fi = np.matrix(filtered_images[:9])
-    # plot_digits(fi)
-    print "diff"
-    diff_arr = np.concatenate((images[:5], fi[:5]), axis=0 )
-    plot_digits(diff_arr)
+    # images, labels, ids  = LoadData('labeled_images.mat', True, False)
+    # # filtered_images = gabor_filter(images[:20])
+    # # filtered_images = fix_pixels(filtered_images)
+    # filtered_images = fix_pixels(images[:20])
+    # filtered_images = standard_data(filtered_images)
+    # # filtered_images = standard_data(images[:20])
+    #
+    # print "originals"
+    # # plot_digits(images[:9])
+    # print "new"
+    # fi = np.matrix(filtered_images[:9])
+    # # plot_digits(fi)
+    # print "diff"
+    # diff_arr = np.concatenate((images[:5], fi[:5]), axis=0 )
+    # plot_digits(diff_arr)
+    #
+    info = [50, 60, 70, 60,75,76]
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    barplot_bagging(ax,info)
+
+    # info = [50, 60, 70, 60,75,76, 50,55,40, 70,55,67]
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111)
+    # barplot_preprocess(ax,info)

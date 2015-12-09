@@ -207,6 +207,8 @@ def create_csv(labels,fname):
     wr.writerow(['Id', 'Prediction'])
     for i, l in enumerate(labels):
         wr.writerow([i+1, l])
+    while i<1253:
+        wr.writerow([i+1, 0])
     myfile.close()
 
 
@@ -327,9 +329,33 @@ def run_my_votin(training_set, train_set_labels, validation_set=None, validation
     #     for i,v in enumerate(prob_predictions):
     #         final_pred
 
+def run_public_test_on(class_name):
 
-
-
+    if class_name == 'knn':
+        res_1 = open('bg1knn.dump', 'r')
+        clf = pickle.load(res_1)
+        res_1.close()
+        print "knn done"
+    elif class_name == 'lr':
+        res_2 = open('bg2lr.dump', 'r')
+        clf = pickle.load(res_2)
+        res_2.close()
+        print "LR done"
+    elif class_name == 'svm':
+        res_3 = open('bg3svm.dump', 'r')
+        clf = pickle.load(res_3)
+        res_3.close()
+        print "svm done"
+    elif class_name == 'nn':
+        res_4 = open('bestNet.dump', 'r')
+        clf = pickle.load(res_4)
+        res_4.close()
+        print "net done"
+    validation_set= LoadData('public_test_images.mat', False, False)
+    fixed_valid = fix_pixels(validation_set)
+    fin_pred = clf.predict_proba(fixed_valid)
+    fin_labels = [(np.argmax(ar, axis=0)+1) for ar in fin_pred]
+    create_csv(fin_labels,'res_csv.csv')
 
 
 if __name__ == '__main__':
@@ -346,7 +372,7 @@ if __name__ == '__main__':
 
     # create_csv(range(11,21))
 
-    training_set, train_set_labels, idst = LoadData('labeled_images.mat', True, False)
-    validation_set= LoadData('public_test_images.mat', False, False)
-    run_my_votin(training_set, train_set_labels,validation_set, None, False)
-
+    # training_set, train_set_labels, idst = LoadData('labeled_images.mat', True, False)
+    # validation_set= LoadData('public_test_images.mat', False, False)
+    # run_my_votin(training_set, train_set_labels,validation_set, None, False)
+    run_public_test_on('svm')

@@ -1,6 +1,6 @@
 __author__ = 'omrim'
 
-from util import LoadData, standard_data, fix_pixels
+from util import LoadData, standard_data, fix_pixels,gabor_filter
 import sklearn.linear_model
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn import cross_validation
@@ -20,18 +20,20 @@ from pybrain.utilities import percentError
 
 def net_class(ustraining_set, train_set_labels, usvalidation_set=None, validation_set_labels=None):
 
+    # ltraining_set = gabor_filter(ustraining_set)
     ltraining_set = standard_data(ustraining_set)
     if not usvalidation_set == None:
+        # lvalidation_set = gabor_filter(usvalidation_set)
         lvalidation_set = standard_data(usvalidation_set)
-        vds = ClassificationDataSet(1024, 8, nb_classes=8)
+        vds = ClassificationDataSet(1024, 7, nb_classes=7)
         for vd, vt in zip(lvalidation_set, validation_set_labels):
-            vtarr = [int(i==vt) for i in range(0,8)]
+            vtarr = [int(i==vt-1) for i in range(0,7)]
             vds.addSample(vd, vtarr)
     # net = buildNetwork(1024, 100, 8,outclass=SoftmaxLayer)
 
-    ds = ClassificationDataSet(1024, 8, nb_classes=8)
+    ds = ClassificationDataSet(1024, 7, nb_classes=7)
     for d,t in zip(ltraining_set, train_set_labels):
-        tarr = [int(i==t) for i in range(0,8)]
+        tarr = [int(i==t-1) for i in range(0,7)]
         ds.addSample(d, tarr)
 
 
@@ -39,9 +41,9 @@ def net_class(ustraining_set, train_set_labels, usvalidation_set=None, validatio
     best_l = 0.0
     best_w = 0.0
     obest_e = 0
-    for l in [ 0.005 ]:
+    for l in [ 0.01 ]:
         for w in [0.05]:
-            net = buildNetwork(1024, 150, 8, outclass=SoftmaxLayer, hiddenclass=SigmoidLayer)
+            net = buildNetwork(1024, 320, 7, outclass=SoftmaxLayer, hiddenclass=SigmoidLayer)
             net.sortModules()
             trainer = BackpropTrainer(net, ds, learningrate=l, momentum=0, weightdecay=w, batchlearning=False,verbose=True)
             cmin_err = 100.0
@@ -71,21 +73,21 @@ def net_class(ustraining_set, train_set_labels, usvalidation_set=None, validatio
                 # print "epoch: %4d" % trainer.totalepochs, \
                 #       "  train error: %5.2f%%" % trnresult, \
                 #    "  test error: %5.2f%%" % cmin_err
-            if not usvalidation_set == None:
-                if tot_min_err > cmin_err:
+                    if not usvalidation_set == None:
+                        if tot_min_err > cmin_err:
 
-                    tot_min_err = cmin_err
+                            tot_min_err = cmin_err
 
-                    best_l = l
-                    best_w = w
-                    obest_e = best_e
-                    print "new opt err:{}, for LR: {}, WD:{}, NE:{} ".format(tot_min_err, best_l, best_w, obest_e)
-            net.sorted = False
-            net.sortModules()
-            res_f = open('bestNetss.dump', 'w')
-            pickle.dump(net,res_f )
-            res_f.close()
-    return trainer
+                            best_l = l
+                            best_w = w
+                            obest_e = best_e
+                            print "new opt err:{}, for LR: {}, WD:{}, NE:{} ".format(tot_min_err, best_l, best_w, obest_e)
+                            net.sorted = False
+                            net.sortModules()
+                            res_f = open('bestNetss.dump', 'w')
+                            pickle.dump(net,res_f )
+                            res_f.close()
+    return net
 
 def load_net_and_check_errorate(X,Y):
 
@@ -93,10 +95,10 @@ def load_net_and_check_errorate(X,Y):
     nnet = pickle.load(res_f)
     nnet.sorted = False
     nnet.sortModules()
-    vds = ClassificationDataSet(1024, 8, nb_classes=8)
+    vds = ClassificationDataSet(1024, 7, nb_classes=7)
     lX = standard_data(X)
     for vd, vt in zip(lX, Y):
-        vtarr = [int(i==vt) for i in range(0,8)]
+        vtarr = [int(i==vt-1) for i in range(0,7)]
         vds.addSample(vd, vtarr)
     ttrainer = BackpropTrainer(nnet, vds, learningrate=0.005, momentum=0, weightdecay=0.05, batchlearning=False,verbose=True)
     ttstresult = percentError( ttrainer.testOnClassData(), Y )
@@ -115,3 +117,25 @@ if __name__ == '__main__':
     net_class(ttraining_set,ttrain_set_labels, validation_set, validation_set_labels)
 
     # load_net_and_check_errorate(validation_set, validation_set_labels)
+
+
+
+#
+#     trndata = ClassificationDataSet(1024, 1 , nb_classes=8)
+# for k in xrange(len(X_train)):
+#     trndata.addSample(np.ravel(X_train[k]),Y_train[k])
+#
+# tstdata = ClassificationDataSet(1024, 1 , nb_classes=8)
+# for k in xrange(len(X_test)):
+#     tstdata.addSample(np.ravel(X_test[k]),Y_test[k])
+#
+# # publicdata = ClassificationDataSet(1024, 1 , nb_classes=8)
+# # for k in xrange(len(zz)):
+# #     publicdata.addSample(np.ravel(zz.T[k]),Y_test[k] )
+#
+# trndata._convertToOneOfMany( )
+# tstdata._convertToOneOfMany( )
+# #publicdata._convertToOneOfMany()
+# fnn = shortcuts.buildNetwork( trndata.indim, 500 , trndata.outdim, outclass=SoftmaxLayer )
+# trainer = BackpropTrainer( fnn, dataset=trndata, learningrate=0.005 , verbose=True, weightdecay=0.01)
+# trainer.trainEpochs (100)
