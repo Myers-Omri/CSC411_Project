@@ -38,6 +38,7 @@ def LoadData(filename, labeled=True, splited=False):
                           a 3D array of shape [32][32][2925]
     """
     data = loadmat(filename)
+    data2 = loadmat('hidden_test_images.mat')
     if labeled:
 
 
@@ -54,18 +55,21 @@ def LoadData(filename, labeled=True, splited=False):
             training_set, validation_set, train_set_labels, validation_set_labels = cross_validation.train_test_split(
                 inputs_trainn, target_train, test_size = 0.3, random_state=1, stratify=corrected_list)
 
-        #test = inputs_train.T
-        #plot_faces.plot_digits(training_set[:9])
-        #plot_faces.plot_digits(validation_set[:9])
-
             return training_set, train_set_labels, validation_set, validation_set_labels
     else:
-        inputs_train = data['public_test_images']
+        inputs_public = data['public_test_images']
+        inputs_hidden = data2['hidden_test_images']
 
-        x,y,z = inputs_train.shape
-        inputs_trainn = (inputs_train.reshape(x*y, z)).T
+        x,y,z = inputs_public.shape
+        inputs_reshape_public = (inputs_public.reshape(x*y, z)).T
+
+        x,y,z = inputs_hidden.shape
+        inputs_reshape_hidden = (inputs_hidden.reshape(x*y, z)).T
+
+        inputs_test = np.vstack((inputs_reshape_public, inputs_reshape_hidden))
+
         if not splited:
-            return inputs_trainn
+            return inputs_test
 
 
 def ShowMeans(means, header=''):
@@ -143,7 +147,6 @@ def barplot_bagging(ax, info):
     # Set the x-axis tick labels to be equal to the categories
     ax.set_xticks(indeces)
     ax.set_xticklabels(p)
-    #plt.setp(plt.xticks()[1], rotation=90)
 
     # Add the axis labels
     ax.set_ylabel("Accuracy")
@@ -234,10 +237,6 @@ def barplot_preprocess(ax, info):
 if __name__ == '__main__':
     images, labels, ids  = LoadData('labeled_images.mat', True, False)
     filtered_images = gabor_filter_f(images[:20])
-   # filtered_images = fix_pixels(filtered_images)
-   #  filtered_images = fix_pixels(images[:20])
-   #  filtered_images = standard_data(filtered_images)
-    # filtered_images = standard_data(images[:20])
 
     print "originals"
     # plot_digits(images[:9])
@@ -247,13 +246,4 @@ if __name__ == '__main__':
     print "diff"
     diff_arr = np.concatenate((images[:5], fi[:5]), axis=0 )
     plot_digits(diff_arr)
-    #
-    # info = [50, 60, 70, 60,75,76]
-    # fig = plt.figure()
-    # ax = fig.add_subplot(111)
-    # barplot_bagging(ax,info)
 
-    # info = [50, 60, 70, 60, 75, 76, 50, 55, 40, 70, 55, 67]
-    # fig = plt.figure()
-    # ax = fig.add_subplot(111)
-    # barplot_preprocess(ax,info)

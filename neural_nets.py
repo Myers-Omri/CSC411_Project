@@ -56,43 +56,37 @@ def net_class(ustraining_set, train_set_labels, usvalidation_set=None, validatio
             flag = True
             best_e = 0
             e = 0
-            while flag:
-                flag = False
-                trnresult = 100.0
-                tstresult = 100.0
-                for i in range(10):
-                    e += 1
-                    trainer.trainEpochs(1)
+            
+            flag = False
+            trnresult = 100.0
+            tstresult = 100.0
+            for i in range(10):
+                e += 1
+                trainer.trainEpochs(1)
 
-                    trnresult = percentError( trainer.testOnClassData(),
-                                              train_set_labels-1 )
+                trnresult = percentError( trainer.testOnClassData(),
+                                          train_set_labels-1 )
 
+                if not usvalidation_set == None:
+                    tstresult = percentError( trainer.testOnClassData(dataset=vds ), validation_set_labels-1 )
+                    if cmin_err >= tstresult:
+                        cmin_err = tstresult
+                        print "copt err ", tstresult
+                        best_e = e
+                        flag = True
+                    if tot_min_err > cmin_err:
 
-                    if not usvalidation_set == None:
-                        tstresult = percentError( trainer.testOnClassData(dataset=vds ), validation_set_labels-1 )
-                        if cmin_err >= tstresult:
-                            cmin_err = tstresult
-                            print "copt err ", tstresult
-                            best_e = e
-                            flag = True
+                        tot_min_err = cmin_err
 
-                # print "epoch: %4d" % trainer.totalepochs, \
-                #       "  train error: %5.2f%%" % trnresult, \
-                #    "  test error: %5.2f%%" % cmin_err
-                    if not usvalidation_set == None:
-                        if tot_min_err > cmin_err:
-
-                            tot_min_err = cmin_err
-
-                            best_l = l
-                            best_w = w
-                            obest_e = best_e
-                            print "new opt err:{}, for LR: {}, WD:{}, NE:{} ".format(tot_min_err, best_l, best_w, obest_e)
-                            net.sorted = False
-                            net.sortModules()
-                            res_f = open('bestNetss.dump', 'w')
-                            pickle.dump(net,res_f )
-                            res_f.close()
+                        best_l = l
+                        best_w = w
+                        obest_e = best_e
+                        print "new opt err:{}, for LR: {}, WD:{}, NE:{} ".format(tot_min_err, best_l, best_w, obest_e)
+    net.sorted = False
+    net.sortModules()
+    res_f = open('net.dump', 'w')
+    pickle.dump(net,res_f )
+    res_f.close()
     return net
 
 def load_net_and_check_errorate(X,Y):
@@ -123,25 +117,3 @@ if __name__ == '__main__':
     net_class(ttraining_set,ttrain_set_labels, validation_set, validation_set_labels)
 
     # load_net_and_check_errorate(validation_set, validation_set_labels)
-
-
-
-#
-#     trndata = ClassificationDataSet(1024, 1 , nb_classes=8)
-# for k in xrange(len(X_train)):
-#     trndata.addSample(np.ravel(X_train[k]),Y_train[k])
-#
-# tstdata = ClassificationDataSet(1024, 1 , nb_classes=8)
-# for k in xrange(len(X_test)):
-#     tstdata.addSample(np.ravel(X_test[k]),Y_test[k])
-#
-# # publicdata = ClassificationDataSet(1024, 1 , nb_classes=8)
-# # for k in xrange(len(zz)):
-# #     publicdata.addSample(np.ravel(zz.T[k]),Y_test[k] )
-#
-# trndata._convertToOneOfMany( )
-# tstdata._convertToOneOfMany( )
-# #publicdata._convertToOneOfMany()
-# fnn = shortcuts.buildNetwork( trndata.indim, 500 , trndata.outdim, outclass=SoftmaxLayer )
-# trainer = BackpropTrainer( fnn, dataset=trndata, learningrate=0.005 , verbose=True, weightdecay=0.01)
-# trainer.trainEpochs (100)
