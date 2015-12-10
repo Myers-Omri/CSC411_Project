@@ -5,7 +5,7 @@ from scipy.io import loadmat
 from random import shuffle
 from sklearn import cross_validation
 from plot_faces import plot_digits
-from skimage.filters import gabor_kernel
+from skimage.filters import gabor_kernel, gabor_filter
 from scipy import ndimage as ndi
 
 import matplotlib.cm as cm
@@ -93,15 +93,6 @@ def fix_pixels(inputs):
         new_data.append(new_i)
     return new_data
 
-def gabor_filter(inputs):
-
-    new_data = []
-    kernel = np.real(gabor_kernel(frequency=0.25, theta=0, sigma_x=1,sigma_y=1))
-    # for i in inputs:
-    #     i.reshape(32,32)
-    filtered = ndi.convolve(inputs, kernel, mode='wrap')
-    # new_data.append(filtered)
-    return filtered
 
 
 
@@ -171,18 +162,22 @@ def barplot_preprocess(ax, info):
     dpoints = np.array(    [['No-Preprocess', 'K-NN', info[0]],
                            ['No-Preprocess', 'Logistic Regression', info[1]],
                            ['No-Preprocess', 'SVM', info[2]],
+                           ['No-Preprocess', 'N-N', info[3]],
 
-                           ['Standardize', 'K-NN', info[3]],
-                           ['Standardize', 'Logistic Regression', info[4]],
-                           ['Standardize', 'SVM', info[5]],
+                           ['Standardize', 'K-NN', info[4]],
+                           ['Standardize', 'Logistic Regression', info[5]],
+                           ['Standardize', 'SVM', info[6]],
+                           ['Standardize', 'N-N', info[7]],
 
-                           ['Histogram Equalization', 'K-NN', info[6]],
-                           ['Histogram Equalization', 'Logistic Regression', info[7]],
-                           ['Histogram Equalization', 'SVM', info[8]],
+                           ['Histogram Equalization', 'K-NN', info[8]],
+                           ['Histogram Equalization', 'Logistic Regression', info[9]],
+                           ['Histogram Equalization', 'SVM', info[10]],
+                           ['Histogram Equalization', 'N-N', info[11]],
 
-                           ['Garbor_filter', 'K-NN', info[9]],
-                           ['Garbor_filter', 'Logistic Regression', info[10]],
-                           ['Garbor_filter', 'SVM', info[11]],
+                           # ['Gabor_filter', 'K-NN', info[12]],
+                           # ['Gabor_filter', 'Logistic Regression', info[13]],
+                           # ['Gabor_filter', 'SVM', info[14]],
+                           # ['Gabor_filter', 'N-N', info[15]],
                             ])
     '''
     Create a barchart for data across different categories with
@@ -237,28 +232,28 @@ def barplot_preprocess(ax, info):
     plt.show()
 
 if __name__ == '__main__':
-    # images, labels, ids  = LoadData('labeled_images.mat', True, False)
-    # # filtered_images = gabor_filter(images[:20])
-    # # filtered_images = fix_pixels(filtered_images)
-    # filtered_images = fix_pixels(images[:20])
-    # filtered_images = standard_data(filtered_images)
-    # # filtered_images = standard_data(images[:20])
-    #
-    # print "originals"
-    # # plot_digits(images[:9])
-    # print "new"
-    # fi = np.matrix(filtered_images[:9])
-    # # plot_digits(fi)
-    # print "diff"
-    # diff_arr = np.concatenate((images[:5], fi[:5]), axis=0 )
-    # plot_digits(diff_arr)
+    images, labels, ids  = LoadData('labeled_images.mat', True, False)
+    filtered_images = gabor_filter_f(images[:20])
+   # filtered_images = fix_pixels(filtered_images)
+   #  filtered_images = fix_pixels(images[:20])
+   #  filtered_images = standard_data(filtered_images)
+    # filtered_images = standard_data(images[:20])
+
+    print "originals"
+    # plot_digits(images[:9])
+    print "new"
+    fi = np.matrix(filtered_images[:9])
+    # plot_digits(fi)
+    print "diff"
+    diff_arr = np.concatenate((images[:5], fi[:5]), axis=0 )
+    plot_digits(diff_arr)
     #
     # info = [50, 60, 70, 60,75,76]
     # fig = plt.figure()
     # ax = fig.add_subplot(111)
     # barplot_bagging(ax,info)
 
-    info = [50, 60, 70, 60, 75, 76, 50, 55, 40, 70, 55, 67]
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    barplot_preprocess(ax,info)
+    # info = [50, 60, 70, 60, 75, 76, 50, 55, 40, 70, 55, 67]
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111)
+    # barplot_preprocess(ax,info)

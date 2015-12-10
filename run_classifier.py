@@ -12,13 +12,13 @@ from sklearn import svm
 import cPickle as pickle
 from util import standard_data, fix_pixels
 import matplotlib.pyplot as plt
-
+from neural_nets import load_net_and_check_errorate, net_class
 #if pre true will make the pre process in the function else work with the data as is
 def knn(training_inputs, training_labels, valid_inputs, valid_label, pre=True):
-    knn_class = KNeighborsClassifier(weights='distance', n_neighbors=5)
+    knn_class = KNeighborsClassifier(weights='distance', n_neighbors=13)
     if pre:
-        standard_train_inputs = standard_data(training_inputs)
-        standard_valid_inputs = standard_data(valid_inputs)
+        standard_train_inputs = fix_pixels(training_inputs)
+        standard_valid_inputs  = fix_pixels(validation_set)
     else:
         standard_train_inputs = training_inputs
         standard_valid_inputs = valid_inputs
@@ -35,9 +35,9 @@ def knn(training_inputs, training_labels, valid_inputs, valid_label, pre=True):
 
 #if pre true will make the pre process in the function else work with the data as is
 def logistic_regression(training_inputs, training_labels, valid_inputs, valid_label, pre=True):
-    logistic_regression_solver = sklearn.linear_model.LogisticRegression(penalty='l2', dual=False, tol=0.001, C=1.2, fit_intercept=True,
+    logistic_regression_solver = sklearn.linear_model.LogisticRegression(penalty='l2', dual=False, tol=0.008, C=1.2, fit_intercept=True,
                                                                          intercept_scaling=1, class_weight=None, random_state=None, solver='newton-cg',
-                                                                         max_iter=200, multi_class='ovr', verbose=0, warm_start=False, n_jobs=1)
+                                                                         max_iter=150, multi_class='ovr', verbose=0, warm_start=False, n_jobs=1)
 
     if pre:
         standard_train_inputs = standard_data(training_inputs)
@@ -119,16 +119,23 @@ def run_bagging(training_set, train_set_labels,  clsf,validation_set=None, valid
     # standard_train_inputs = standard_data(training_set)
     # standard_valid_inputs = standard_data(validation_set)
     fbgc = bgc.fit(training_set,train_set_labels.ravel())
-    if not validation_set_labels == None:
+    if facc:
         acc = fbgc.score(validation_set,validation_set_labels.ravel())
         print(acc)
+        return acc
     if facc:
         return fbgc
-    else:
-        return acc
-def get_acc(pred, labels):
+
+
+
+def get_acc(preds, labels, multy=False ):
     corrects = 0
     errs = []
+
+    if multy:
+        pred = [(np.argmax(ar, axis=0)+1) for ar in preds]
+    else:
+        pred = preds
     for p,l in zip(pred,labels):
         corrects += int(p==l[0])
         errs.append((p,l[0]))
@@ -140,8 +147,10 @@ def create_csv(labels,fname):
     myfile = open(fname, 'wb')
     wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
     wr.writerow(['Id', 'Prediction'])
-    for i, l in enumerate(labels):
+    i=0
+    for l in labels:
         wr.writerow([i+1, l])
+        i+=1
     while i<1253:
         wr.writerow([i+1, 0])
         i+=1
@@ -152,43 +161,45 @@ def create_csv(labels,fname):
 def run_my_votin(training_set, train_set_labels, validation_set=None, validation_set_labels=None, train=True):
     from sklearn.ensemble import VotingClassifier
     from pybrain.datasets import ClassificationDataSet
-    from neural_nets import load_net_and_check_errorate, net_class
+
 
     standard_valid_inputs = standard_data(validation_set)
-
     fixed_valid = fix_pixels(validation_set)
+    equalize_and_standard_validation= standard_data(fixed_valid)
     if train:
         standard_train_inputs = standard_data(training_set)
         fixed_train_set = fix_pixels(training_set)
-        kknn_class = KNeighborsClassifier(weights='distance', n_neighbors=5)
-        kknn_class.fit(standard_train_inputs, train_set_labels.ravel())
-        logistic_regression_solver = sklearn.linear_model.LogisticRegression(penalty='l2', dual=False, tol=0.001, C=1.2, fit_intercept=True,
+        equalize_and_standard = standard_data(fixed_train_set)
+
+        kknn_class = KNeighborsClassifier(weights='distance', n_neighbors=11)
+        # kknn_class.fit(standard_train_inputs, train_set_labels.ravel())
+        logistic_regression_solver = sklearn.linear_model.LogisticRegression(penalty='l2', dual=False, tol=0.01, C=1.0, fit_intercept=True,
                                                                              intercept_scaling=1, class_weight=None, random_state=None, solver='newton-cg',
                                                                              max_iter=200, multi_class='ovr', verbose=0, warm_start=False, n_jobs=2)
         svm_class = svm.SVC(kernel='rbf', C=50, shrinking = False,decision_function_shape='ovr', tol=0.001, max_iter=-1)
 
 
-        # bg1 = run_bagging(standard_train_inputs, train_set_labels, kknn_class, standard_valid_inputs, validation_set_labels)
+        bg1 = run_bagging(fixed_train_set, train_set_labels, kknn_class, None, None, False)
         res_f = open('bg1knn.dump', 'w')
-        pickle.dump(kknn_class,res_f )
+        pickle.dump(bg1,res_f )
         res_f.close()
         print "Knn done"
-        bg2 = run_bagging(standard_train_inputs, train_set_labels, logistic_regression_solver, standard_valid_inputs, validation_set_labels)
+        bg2 = run_bagging(standard_train_inputs, train_set_labels, logistic_regression_solver, None, None, False)
         res_f = open('bg2lr.dump', 'w')
         pickle.dump(bg2,res_f )
         res_f.close()
         print "done bg LR"
-        bg3 = run_bagging(fixed_train_set, train_set_labels ,svm_class, fixed_valid, validation_set_labels)
+        bg3 = run_bagging(equalize_and_standard, train_set_labels ,svm_class,  None, None, False)
         res_f = open('bg3svm.dump', 'w')
         pickle.dump(bg3,res_f )
         res_f.close()
         print "done bg svm"
-        net_clf = net_class(training_set,train_set_labels)
+        net_clf = net_class(standard_train_inputs,train_set_labels, None, None, False)
         print "nets done"
     else:
 
         res_1 = open('bg1knn.dump', 'r')
-        kknn_class = pickle.load(res_1)
+        bg1 = pickle.load(res_1)
         res_1.close()
         print "knn done"
         res_2 = open('bg2lr.dump', 'r')
@@ -222,9 +233,10 @@ def run_my_votin(training_set, train_set_labels, validation_set=None, validation
     net_weight = 0.1
 
 
-    for clf in [kknn_class, bg2]:
-        preds_arr.append(clf.predict_proba(standard_valid_inputs))
-    preds_arr.append(bg3.predict_proba(fixed_valid))
+
+    preds_arr.append(bg1.predict_proba(fixed_valid))
+    preds_arr.append(bg2.predict_proba(standard_valid_inputs))
+    preds_arr.append(bg3.predict_proba(equalize_and_standard_validation))
 
     net_preds =[]
     for in_data in standard_valid_inputs:
@@ -320,14 +332,14 @@ def make_data_for_barplot():
     accuracys.append(run_svm(training_sett, train_set_labels, validation_set, validation_set_labels))
     print"run_svm"
 
-    accuracys.append( run_bagging(standard_train_inputs, train_set_labels, kknn_class,standard_valid_inputs, validation_set_labels, True))
+    accuracys.append( run_bagging(fixed_train_set, train_set_labels, kknn_class,fixed_valid, validation_set_labels, True))
     print" knn B"
     accuracys.append( run_bagging(standard_train_inputs, train_set_labels, logistic_regression_solver,standard_valid_inputs, validation_set_labels, True))
     print"logistic_regression  B"
     accuracys.append( run_bagging(fixed_train_set, train_set_labels, svm_class,fixed_valid, validation_set_labels, True))
     print"run_svm  B"
 
-    create_csv(accuracys,'barplot_bagg_accuracy')
+    create_csv(accuracys,'barplot_bagg_accuracy.csv')
     fig = plt.figure()
     ax = fig.add_subplot(111)
     barplot_bagging(ax,accuracys)
@@ -350,19 +362,24 @@ def make_data_for_prepro():
     fixed_train_set = fix_pixels(training_sett)
     fixed_valid = fix_pixels(validation_set)
 
-    garbored_train_set = gabor_filter(training_sett)
-    garbored_valid_set = gabor_filter(validation_set)
+    # garbored_train_set = gabor_filter(training_sett)
+    # garbored_valid_set = gabor_filter(validation_set)
 
     data_list = [(training_sett,validation_set), (standard_train_inputs, standard_valid_inputs),
-                 (fixed_train_set,fixed_valid),(garbored_train_set,garbored_valid_set)]
+                 (fixed_train_set,fixed_valid)]#,(garbored_train_set,garbored_valid_set)]
     for (t,v) in data_list:
 
-        accuracys.append(knn(t, train_set_labelts, v, validation_set_labels, False))
-        accuracys.append(logistic_regression(t,train_set_labelts , v, validation_set_labels, False))
-        accuracys.append(run_svm(t, train_set_labelts, v, validation_set_labels, False))
+        # accuracys.append(knn(t, train_set_labelts, v, validation_set_labels, False))
+        # accuracys.append(logistic_regression(t,train_set_labelts , v, validation_set_labels, False))
+        # accuracys.append(run_svm(t, train_set_labelts, v, validation_set_labels, False))
+        net_clf = net_class(t, train_set_labelts, v, validation_set_labels, False)
+        net_preds =[]
+        for in_data in v:
+            net_preds.append(net_clf.activate(in_data))
+        accuracys.append(get_acc(net_preds,validation_set_labels, True))
         print"done iter"
 
-    create_csv(accuracys,'barplot_pre_accuracy')
+    create_csv(accuracys,'barplot_pre_accuracy.csv')
     fig = plt.figure()
     ax = fig.add_subplot(111)
     barplot_preprocess(ax,accuracys)
@@ -378,16 +395,35 @@ if __name__ == '__main__':
     #adaBoost(training_set, train_set_labels, validation_set, validation_set_labels)
     # inp, labels, ids = LoadData('labeled_images.mat', True, False)
     # run_svm(inp, labels, ids)
-    #run_bagging(training_set, train_set_labels, validation_set, validation_set_labels, clsf)
+
+
+    # fixed_train_set = fix_pixels(training_sett)
+    # fixed_valid = fix_pixels(validation_set)
+    # standard_train_inputs = standard_data(training_sett)
+    # standard_valid_inputs = standard_data(validation_set)
+    # kknn_class = KNeighborsClassifier(weights='distance', n_neighbors=5)
+    # clsf = svm.SVC(kernel='rbf', C=50, shrinking = False,decision_function_shape='ovr', tol=0.001, max_iter=-1)
+    # # run_bagging(fixed_train_set, train_set_labelts, clsf, fixed_valid, validation_set_labels, True)
+    # logistic_regression_solver = sklearn.linear_model.LogisticRegression(penalty='l2', dual=False, tol=0.001, C=1.2, fit_intercept=True,
+    #                                                                          intercept_scaling=1, class_weight=None, random_state=None, solver='newton-cg',
+    #                                                                          max_iter=200, multi_class='ovr', verbose=0, warm_start=False, n_jobs=2)
+
+    # run_bagging(standard_train_inputs, train_set_labelts, logistic_regression_solver, standard_valid_inputs, validation_set_labels, True)
+    # logistic_regression(standard_train_inputs, train_set_labelts,  standard_valid_inputs, validation_set_labels, pre=True)
     #run_voting(training_set, train_set_labels, validation_set, validation_set_labels)
 
     # create_csv(range(11,21))
 
-    # training_set, train_set_labels, idst = LoadData('labeled_images.mat', True, False)
+    training_set, train_set_labels, idst = LoadData('labeled_images.mat', True, False)
     # validation_set= LoadData('public_test_images.mat', False, False)
-    # run_my_votin(training_set, train_set_labels,validation_set, None, False)
+    run_my_votin(training_set, train_set_labels,validation_set, None, False)
     # run_public_test_on('svm')
 
     # run_svm(training_sett,  validation_set, train_set_labelts,validation_set_labels)
-    make_data_for_barplot()
-    make_data_for_prepro()
+    # make_data_for_barplot()
+    # make_data_for_prepro()
+
+
+
+
+
