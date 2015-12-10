@@ -180,9 +180,9 @@ def barplot_preprocess(ax, info):
                            ['Histogram Equalization', 'Logistic Regression', info[7]],
                            ['Histogram Equalization', 'SVM', info[8]],
 
-                           ['Standardize', 'K-NN', info[9]],
-                           ['Standardize', 'Logistic Regression', info[10]],
-                           ['Standardize', 'SVM', info[11]],
+                           ['Garbor_filter', 'K-NN', info[9]],
+                           ['Garbor_filter', 'Logistic Regression', info[10]],
+                           ['Garbor_filter', 'SVM', info[11]],
                             ])
     '''
     Create a barchart for data across different categories with
@@ -253,12 +253,12 @@ if __name__ == '__main__':
     # diff_arr = np.concatenate((images[:5], fi[:5]), axis=0 )
     # plot_digits(diff_arr)
     #
-    info = [50, 60, 70, 60,75,76]
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    barplot_bagging(ax,info)
-
-    # info = [50, 60, 70, 60,75,76, 50,55,40, 70,55,67]
+    # info = [50, 60, 70, 60,75,76]
     # fig = plt.figure()
     # ax = fig.add_subplot(111)
-    # barplot_preprocess(ax,info)
+    # barplot_bagging(ax,info)
+
+    info = [50, 60, 70, 60, 75, 76, 50, 55, 40, 70, 55, 67]
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    barplot_preprocess(ax,info)

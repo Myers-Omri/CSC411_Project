@@ -18,13 +18,19 @@ from pybrain.supervised.trainers import BackpropTrainer
 from pybrain.datasets import ClassificationDataSet
 from pybrain.utilities import percentError
 
-def net_class(ustraining_set, train_set_labels, usvalidation_set=None, validation_set_labels=None):
-
-    # ltraining_set = gabor_filter(ustraining_set)
-    ltraining_set = standard_data(ustraining_set)
+def net_class(ustraining_set, train_set_labels, usvalidation_set=None, validation_set_labels=None, pre = True):
+    # print (validation_set_labels - 1)
+    if pre:
+        # ltraining_set = gabor_filter(ustraining_set)
+        ltraining_set = standard_data(ustraining_set)
+    else:
+        ltraining_set = ustraining_set
     if not usvalidation_set == None:
-        # lvalidation_set = gabor_filter(usvalidation_set)
-        lvalidation_set = standard_data(usvalidation_set)
+        if pre:
+            # lvalidation_set = gabor_filter(usvalidation_set)
+            lvalidation_set = standard_data(usvalidation_set)
+        else:
+            lvalidation_set = usvalidation_set
         vds = ClassificationDataSet(1024, 7, nb_classes=7)
         for vd, vt in zip(lvalidation_set, validation_set_labels):
             vtarr = [int(i==vt-1) for i in range(0,7)]
@@ -41,8 +47,8 @@ def net_class(ustraining_set, train_set_labels, usvalidation_set=None, validatio
     best_l = 0.0
     best_w = 0.0
     obest_e = 0
-    for l in [ 0.01 ]:
-        for w in [0.05]:
+    for l in [ 0.005 ]:
+        for w in [0.01]:
             net = buildNetwork(1024, 320, 7, outclass=SoftmaxLayer, hiddenclass=SigmoidLayer)
             net.sortModules()
             trainer = BackpropTrainer(net, ds, learningrate=l, momentum=0, weightdecay=w, batchlearning=False,verbose=True)
@@ -59,11 +65,11 @@ def net_class(ustraining_set, train_set_labels, usvalidation_set=None, validatio
                     trainer.trainEpochs(1)
 
                     trnresult = percentError( trainer.testOnClassData(),
-                                              train_set_labels )
+                                              train_set_labels-1 )
 
 
                     if not usvalidation_set == None:
-                        tstresult = percentError( trainer.testOnClassData(dataset=vds ), validation_set_labels )
+                        tstresult = percentError( trainer.testOnClassData(dataset=vds ), validation_set_labels-1 )
                         if cmin_err >= tstresult:
                             cmin_err = tstresult
                             print "copt err ", tstresult
