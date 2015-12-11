@@ -179,50 +179,55 @@ def run_my_votin(training_set, train_set_labels, validation_set=None, validation
                                                                              max_iter=200, multi_class='ovr', verbose=0, warm_start=False, n_jobs=2)
         svm_class = svm.SVC(kernel='rbf', C=50, shrinking = False,decision_function_shape='ovr', tol=0.001, max_iter=-1)
 
-
+        print"train knn"
         bg1 = run_bagging(fixed_train_set, train_set_labels, kknn_class, None, None, False)
         res_f = open('bg1knn.dump', 'w')
         pickle.dump(bg1,res_f )
         res_f.close()
         print "Knn done"
+        print"train Logistic Regression"
         bg2 = run_bagging(standard_train_inputs, train_set_labels, logistic_regression_solver, None, None, False)
         res_f = open('bg2lr.dump', 'w')
         pickle.dump(bg2,res_f )
         res_f.close()
         print "done bg LR"
+        print"train SVM"
         bg3 = run_bagging(equalize_and_standard, train_set_labels ,svm_class,  None, None, False)
         res_f = open('bg3svm.dump', 'w')
         pickle.dump(bg3,res_f )
         res_f.close()
         print "done bg svm"
+        print"train Neural-Nets"
         net_clf = net_class(standard_train_inputs,train_set_labels, None, None, False)
         res_f = open('net.dump', 'w')
         pickle.dump(net_clf,res_f)
         res_f.close()
         print "nets done"
     else:
-
+        print"Load knn"
         res_1 = open('bg1knn.dump', 'r')
         bg1 = pickle.load(res_1)
         res_1.close()
         print "knn done"
+        print"Load LR"
         res_2 = open('bg2lr.dump', 'r')
         bg2 = pickle.load(res_2)
         res_2.close()
         print "LR done"
+        print"Load SVM"
         res_3 = open('bg3svm.dump', 'r')
         bg3 = pickle.load(res_3)
         res_3.close()
         print "svm done"
-
+        print"Load Neural-nets"
         res_4 = open('net.dump', 'r')
         net_clf = pickle.load(res_4)
         res_4.close()
         print "net done"
 
     preds_arr = []
-    pred_weights = [0.05, 0.4,0.45]
-    net_weight = 0.1
+    pred_weights = [0.1, 0.26,0.34]
+    net_weight = 0.30
 
     preds_arr.append(bg1.predict_proba(fixed_valid))
     preds_arr.append(bg2.predict_proba(standard_valid_inputs))
@@ -244,9 +249,16 @@ def run_my_votin(training_set, train_set_labels, validation_set=None, validation
 
     fin_labels = [(np.argmax(ar, axis=0)+1) for ar in fin_pred]
     create_csv(fin_labels,'test_csv.csv')
-    if not validation_set_labels == None:
+    if validation_set_labels:
         fin_acc, err = get_acc(fin_labels, validation_set_labels)
         print 'The final accuracy after bagging and votig is :', fin_acc
+
+    fin_one_of_k = []
+    for c in fin_labels:
+        carr = [int(i==c-1) for i in range(0,7)]
+        fin_one_of_k.append(carr)
+    return fin_one_of_k
+
 
 def run_public_test_on(class_name):
 
